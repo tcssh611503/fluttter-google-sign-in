@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'dart:convert';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 final GoogleSignIn googleSignIn = GoogleSignIn();
@@ -8,6 +10,22 @@ final GoogleSignIn googleSignIn = GoogleSignIn();
 String name;
 String email;
 String imageUrl;
+
+Map<String, dynamic> userData;
+AccessToken accessToken;
+bool checking = true;
+
+void printCredentials() {
+    print(
+      prettyPrint(accessToken.toJson()),
+    );
+  }
+
+  String prettyPrint(Map json) {
+  JsonEncoder encoder = new JsonEncoder.withIndent('  ');
+  String pretty = encoder.convert(json);
+  return pretty;
+}
 
 Future<String> signInWithGoogle() async {
   await Firebase.initializeApp();
@@ -59,3 +77,47 @@ Future<void> signOutGoogle() async {
 
   print("User Signed Out");
 }
+
+
+Future<void> facebooklogin2() async {
+   print('facebook login start');
+    try {
+        // by default the login method has the next permissions ['email','public_profile']
+      AccessToken accessToken = await FacebookAuth.instance.login();
+      print(accessToken.toJson());
+      // get the user data
+      final userData = await FacebookAuth.instance.getUserData();
+      print(userData.toString);
+
+
+
+    } on FacebookAuthException catch (e) {
+      switch (e.errorCode) {
+          case FacebookAuthErrorCode.OPERATION_IN_PROGRESS:
+            print("You have a previous login operation in progress");
+            break;
+          case FacebookAuthErrorCode.CANCELLED:
+            print("login cancelled");
+            break;
+          case FacebookAuthErrorCode.FAILED:
+            print("login failed");
+            break;
+      }
+    } catch(e,s){
+      print(e);
+      print(s);
+    }
+
+
+  }
+
+
+
+   Future<void> facebookLogOut() async {
+    await FacebookAuth.instance.logOut();
+    accessToken = null;
+    userData = null;
+
+     print('facebook log out');
+ 
+  }
